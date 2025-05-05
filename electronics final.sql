@@ -9,7 +9,7 @@
 -- List of products:
 
 SELECT
-	category AS product_categories,
+    category AS product_categories,
     subcategory AS product_subcategories
 FROM products
 GROUP BY product_categories, product_subcategories;
@@ -17,13 +17,13 @@ GROUP BY product_categories, product_subcategories;
 -- Count of customers distribution by country and state (breaking down by city was too granular):
 
 SELECT
-	country,
+    country,
     COUNT(customerkey) AS num_customers
 FROM customers
 GROUP BY country;
 
 SELECT
-	country,
+    country,
     state,
     COUNT(customerkey) AS num_customers
 FROM customers
@@ -33,11 +33,11 @@ ORDER BY num_customers DESC;
 -- Layering in percentages:
 
 SELECT
-	country,
+    country,
     COUNT(customerkey) AS num_customers,
     COUNT(customerkey) / (
-		SELECT
-			COUNT(customerkey)
+	SELECT
+	    COUNT(customerkey)
         FROM customers
 	) * 100 AS pct_customers
 FROM customers
@@ -45,12 +45,12 @@ GROUP BY country
 ORDER BY pct_customers DESC;
 
 SELECT
-	country,
+    country,
     state,
     COUNT(customerkey) AS num_customers,
     COUNT(customerkey) / (
-		SELECT
-			COUNT(customerkey)
+	SELECT
+	    COUNT(customerkey)
         FROM customers
 	) * 100 AS pct_customers
 FROM customers
@@ -68,22 +68,22 @@ Initial analysis:
 -- Note: there are no products with 0 sales
 
 SELECT
-	products.category,
+    products.category,
     products.subcategory,
     COUNT(sales.quantity) AS num_sales
 FROM products
 LEFT JOIN sales
-	ON products.productkey = sales.productkey
+    ON products.productkey = sales.productkey
 GROUP BY products.category, products.subcategory
 ORDER BY products.category, num_sales DESC, products.subcategory;
 
 SELECT
-	products.category,
+    products.category,
     products.subcategory,
     SUM(products.unit_price_usd * sales.quantity) AS revenue
 FROM products
 LEFT JOIN sales
-	ON products.productkey = sales.productkey
+    ON products.productkey = sales.productkey
 GROUP BY products.category, products.subcategory
 ORDER BY products.category, products.subcategory, revenue DESC;
 
@@ -102,7 +102,7 @@ Deep dive analysis:
 -- Breakdown by volume by month:
 
 SELECT
-	MONTH(order_date) AS month,
+    MONTH(order_date) AS month,
     COUNT(*) AS num_sales
 FROM sales
 GROUP BY month;
@@ -110,7 +110,7 @@ GROUP BY month;
 -- Breakdown by volume by month and year:
 
 SELECT
-	YEAR(order_date) AS year,
+    YEAR(order_date) AS year,
     MONTH(order_date) AS month,
     COUNT(*) AS num_sales
 FROM sales
@@ -120,20 +120,20 @@ ORDER BY year, month;
 -- Breakdown by revenue by month:
 
 WITH total_sales AS (
-	SELECT
-		MONTH(sales.order_date) AS month,
-		-- sales.productkey,
-		-- sales.quantity,
-		-- products.unit_price_usd,
-		sales.quantity * products.unit_price_usd AS revenue
-	FROM sales
-	INNER JOIN products
-		ON sales.productkey = products.productkey
-	-- GROUP BY month, sales.productkey, sales.quantity
+    SELECT
+        MONTH(sales.order_date) AS month,
+        -- sales.productkey,
+        -- sales.quantity,
+        -- products.unit_price_usd,
+        sales.quantity * products.unit_price_usd AS revenue
+    FROM sales
+    INNER JOIN products
+        ON sales.productkey = products.productkey
+    -- GROUP BY month, sales.productkey, sales.quantity
 )
 
 SELECT
-	month,
+    month,
     SUM(revenue) AS revenue
 FROM total_sales
 GROUP BY month
@@ -142,21 +142,21 @@ ORDER BY month;
 -- Breakdown by revenue by month and year:
 
 WITH total_sales AS (
-	SELECT
-		YEAR(sales.order_date) AS year,
+    SELECT
+        YEAR(sales.order_date) AS year,
         MONTH(sales.order_date) AS month,
-		-- sales.productkey,
-		-- sales.quantity,
-		-- products.unit_price_usd,
-		sales.quantity * products.unit_price_usd AS revenue
-	FROM sales
-	INNER JOIN products
-		ON sales.productkey = products.productkey
-	-- GROUP BY year, month, sales.productkey, sales.quantity
+        -- sales.productkey,
+        -- sales.quantity,
+        -- products.unit_price_usd,
+        sales.quantity * products.unit_price_usd AS revenue
+    FROM sales
+    INNER JOIN products
+        ON sales.productkey = products.productkey
+    -- GROUP BY year, month, sales.productkey, sales.quantity
 )
 
 SELECT
-	year,
+    year,
     month,
     SUM(revenue) AS revenue
 FROM total_sales
@@ -166,7 +166,7 @@ ORDER BY year, month;
 /*
 Initial analysis:
 - In terms of sales volume, Dec through Feb are the biggest months for the company by a wide margin
-	- The holidays likely play a factor for Dec; however, this isn't the case for Jan/Feb
+    - The holidays likely play a factor for Dec; however, this isn't the case for Jan/Feb
     - One possible reason could be that Jan/Feb is when people have additional money to spend from holiday bonuses
 - Apr is a terrible month (the worst month every year), with Mar not looking great either
 - 2019 was the best year for the company, with 10 months out of the year in the top 13 months all time by volume
@@ -178,20 +178,20 @@ Initial analysis:
 -- AOV by month:
 
 WITH total_sales AS (
-	SELECT
-        MONTH(sales.order_date) AS month,
-		-- sales.productkey,
-		sales.quantity,
-		-- products.unit_price_usd,
-		sales.quantity * products.unit_price_usd AS revenue
-	FROM sales
-	INNER JOIN products
-		ON sales.productkey = products.productkey
-	-- GROUP BY month, sales.productkey, sales.quantity
+    SELECT
+    MONTH(sales.order_date) AS month,
+        -- sales.productkey,
+        sales.quantity,
+        -- products.unit_price_usd,
+        sales.quantity * products.unit_price_usd AS revenue
+    FROM sales
+    INNER JOIN products
+        ON sales.productkey = products.productkey
+    -- GROUP BY month, sales.productkey, sales.quantity
 )
 
 SELECT
-	month,
+    month,
     SUM(revenue) / SUM(quantity) AS aov_month
 FROM total_sales
 GROUP BY month
@@ -200,21 +200,21 @@ ORDER BY month;
 -- AOV by month and year:
 
 WITH total_sales AS (
-	SELECT
-		YEAR(sales.order_date) AS year,
+    SELECT
+        YEAR(sales.order_date) AS year,
         MONTH(sales.order_date) AS month,
-		-- sales.productkey,
-		sales.quantity,
-		-- products.unit_price_usd,
-		sales.quantity * products.unit_price_usd AS revenue
-	FROM sales
-	INNER JOIN products
-		ON sales.productkey = products.productkey
-	-- GROUP BY year, month, sales.productkey, sales.quantity
+        -- sales.productkey,
+        sales.quantity,
+        -- products.unit_price_usd,
+        sales.quantity * products.unit_price_usd AS revenue
+    FROM sales
+    INNER JOIN products
+        ON sales.productkey = products.productkey
+    -- GROUP BY year, month, sales.productkey, sales.quantity
 )
 
 SELECT
-	year,
+    year,
     month,
     SUM(revenue) / SUM(quantity) AS aov_month
 FROM total_sales
@@ -225,7 +225,7 @@ ORDER BY year, month;
 Deep dive 1 analysis:
 - Q1 and Q2 (besides Jun) have higher AOVs than average, which is interesting considering how poor performance is in Mar/Apr. Mar is actually the month with the highest AOV
 - There are very few orders in Mar/Apr, but those orders are for more expensive products
-	- The company should lean into this to try to boost performance during these months
+    - The company should lean into this to try to boost performance during these months
 - Dec has a very low AOV, which is likely due to holiday shoppers purchasing cheap presents
 - Summer months are poor
 - As for year, 2016-2017 had high AOVs (but low revenue), and vice versa for 2019-2020. The company may have introduced new, cheaper products around 2018, and was rewarded with a significant sales volume increase
@@ -235,23 +235,23 @@ Deep dive 1 analysis:
 -- Rankings by volume by month:
 
 WITH subcategory_monthly_sales AS (
-	SELECT
-		MONTH(sales.order_date) AS month,
-		products.subcategory,
-		COUNT(sales.order_number) AS num_sales,
+    SELECT
+        MONTH(sales.order_date) AS month,
+        products.subcategory,
+        COUNT(sales.order_number) AS num_sales,
         SUM(products.unit_price_usd * sales.quantity) AS revenue
-	FROM sales
-	INNER JOIN products
-		ON sales.productkey = products.productkey
-	GROUP BY month, products.subcategory
+    FROM sales
+    INNER JOIN products
+        ON sales.productkey = products.productkey
+    GROUP BY month, products.subcategory
 )
 
 SELECT
-	month,
+    month,
     subcategory,
     num_sales,
     ROW_NUMBER() OVER(
-		PARTITION BY month
+        PARTITION BY month
         ORDER BY num_sales DESC
         ) AS ranking
 FROM subcategory_monthly_sales
@@ -260,23 +260,23 @@ ORDER BY month, ranking;
 -- Rankings by revenue by month:
     
 WITH subcategory_monthly_sales AS (
-	SELECT
-		MONTH(sales.order_date) AS month,
-		products.subcategory,
-		COUNT(sales.order_number) AS num_sales,
+    SELECT
+        MONTH(sales.order_date) AS month,
+        products.subcategory,
+        COUNT(sales.order_number) AS num_sales,
         SUM(products.unit_price_usd * sales.quantity) AS revenue
-	FROM sales
-	INNER JOIN products
-		ON sales.productkey = products.productkey
-	GROUP BY month, products.subcategory
+    FROM sales
+    INNER JOIN products
+        ON sales.productkey = products.productkey
+    GROUP BY month, products.subcategory
 )
 
 SELECT
-	month,
+    month,
     subcategory,
     revenue,
     ROW_NUMBER() OVER(
-		PARTITION BY month
+        PARTITION BY month
         ORDER BY revenue DESC
         ) AS ranking
 FROM subcategory_monthly_sales
@@ -286,9 +286,9 @@ ORDER BY month, ranking;
 Deep dive 2 analysis:
 - Desktops rank #1 year-round for both volume and revenue, and Movie DVD ranks last year-round (except in April for volume)
 - Products related to temperature (Air Conditioners, Water Heaters, Fans) do not show significant fluctuation between months
-	- This could possibly mean customers don't wait until it's hot/cold to replace/purchase these items, and just replace/purchase immediately
+    - This could possibly mean customers don't wait until it's hot/cold to replace/purchase these items, and just replace/purchase immediately
 - Giftable items (Bluetooth Headphones, Cell Phone Accessories, Computer Accessories) see spikes in sales volume in Dec, but interestingly do not deviate much in volume rankings
-	- Bluetooth Headphones in particular remain steady at #2 in volume year-round, despite sales increasing Dec through Feb
+    - Bluetooth Headphones in particular remain steady at #2 in volume year-round, despite sales increasing Dec through Feb
 - Overall there doesn't seem to be much seasonality in terms of product categories
 */
 
@@ -297,16 +297,16 @@ Deep dive 2 analysis:
 -- Avg delivery time by month:
 
 WITH delivery_time AS (
-	SELECT
-		order_date,
-		delivery_date,
-		DATEDIFF(delivery_date, order_date) AS delivery_time
-	FROM sales
-	WHERE delivery_date IS NOT NULL
+    SELECT
+        order_date,
+        delivery_date,
+        DATEDIFF(delivery_date, order_date) AS delivery_time
+    FROM sales
+    WHERE delivery_date IS NOT NULL
 )
 
 SELECT
-	MONTH(order_date) AS month,
+    MONTH(order_date) AS month,
     AVG(delivery_time) AS avg_delivery_time
 FROM delivery_time
 GROUP BY month;
@@ -314,16 +314,16 @@ GROUP BY month;
 -- Avg delivery time by month and year:
 
 WITH delivery_time AS (
-	SELECT
-		order_date,
-		delivery_date,
-		DATEDIFF(delivery_date, order_date) AS delivery_time
-	FROM sales
-	WHERE delivery_date IS NOT NULL
+    SELECT
+        order_date,
+        delivery_date,
+        DATEDIFF(delivery_date, order_date) AS delivery_time
+    FROM sales
+    WHERE delivery_date IS NOT NULL
 )
 
 SELECT
-	YEAR(order_date) AS year,
+    YEAR(order_date) AS year,
     MONTH(order_date) AS month,
     AVG(delivery_time) AS avg_delivery_time
 FROM delivery_time
@@ -339,13 +339,13 @@ Initial analysis:
 -- Avg delivery time by state:
 
 SELECT 
-	customers.country,
+    customers.country,
     customers.state,
     COUNT(sales.order_number) AS num_sales,
     AVG(DATEDIFF(sales.delivery_date, sales.order_date)) AS avg_delivery_time
 FROM sales
 INNER JOIN customers
-	ON sales.customerkey = customers.customerkey
+    ON sales.customerkey = customers.customerkey
 WHERE sales.storekey = 0
 GROUP BY customers.country, customers.state
 ORDER BY customers.country, avg_delivery_time;
@@ -353,20 +353,20 @@ ORDER BY customers.country, avg_delivery_time;
 -- Delivery time ranges by country:
 
 WITH avg_delivery_times_country AS (
-	SELECT 
-		customers.country,
-		customers.state,
-		COUNT(sales.order_number) AS num_sales,
-		AVG(DATEDIFF(sales.delivery_date, sales.order_date)) AS delivery_time
-	FROM sales
-	INNER JOIN customers
-		ON sales.customerkey = customers.customerkey
-	WHERE sales.storekey = 0
-	GROUP BY customers.country, customers.state
+    SELECT 
+        customers.country,
+        customers.state,
+        COUNT(sales.order_number) AS num_sales,
+        AVG(DATEDIFF(sales.delivery_date, sales.order_date)) AS delivery_time
+    FROM sales
+    INNER JOIN customers
+        ON sales.customerkey = customers.customerkey
+    WHERE sales.storekey = 0
+    GROUP BY customers.country, customers.state
 )
 
 SELECT
-	country,
+    country,
     MIN(delivery_time) AS min_delivery,
     MAX(delivery_time) AS max_delivery,
     AVG(delivery_time) AS avg_delivery
@@ -377,19 +377,19 @@ ORDER BY country;
 -- Countries that have an average delivery time higher than the overall average delivery time:
 
 SELECT
-	customers.country,
+    customers.country,
     AVG(DATEDIFF(delivery_date, order_date)) AS avg_delivery_time
 FROM sales
 INNER JOIN customers
-	ON sales.customerkey = customers.customerkey
+    ON sales.customerkey = customers.customerkey
 WHERE sales.storekey = 0
 GROUP BY customers.country
 HAVING AVG(DATEDIFF(delivery_date, order_date)) > (
-		SELECT
-			AVG(DATEDIFF(delivery_date, order_date))
-		FROM sales
+        SELECT
+            AVG(DATEDIFF(delivery_date, order_date))
+        FROM sales
         WHERE storekey = 0
-		)
+        )
 ORDER BY avg_delivery_time DESC;
 
 /*
@@ -407,13 +407,13 @@ Deep dive analysis:
 
 SELECT
     SUM(sales.quantity * products.unit_price_usd) / SUM(quantity) AS aov_month,
-	CASE
-		WHEN sales.storekey = 0 THEN 'online'
-		ELSE 'in_store'
-		END AS store_type
+    CASE
+        WHEN sales.storekey = 0 THEN 'online'
+        ELSE 'in_store'
+        END AS store_type
 FROM sales
 INNER JOIN products
-	ON sales.productkey = products.productkey
+    ON sales.productkey = products.productkey
 GROUP BY store_type;
 
 -- Avg AOV by store type by month:
@@ -421,28 +421,28 @@ GROUP BY store_type;
 SELECT
     MONTH(sales.order_date) AS month,
     SUM(sales.quantity * products.unit_price_usd) / SUM(quantity) AS aov_month,
-	CASE
-		WHEN sales.storekey = 0 THEN 'online'
-		ELSE 'in_store'
-		END AS store_type
+    CASE
+        WHEN sales.storekey = 0 THEN 'online'
+        ELSE 'in_store'
+        END AS store_type
 FROM sales
 INNER JOIN products
-	ON sales.productkey = products.productkey
+    ON sales.productkey = products.productkey
 GROUP BY store_type, month;
 
 -- Avg AOV by store type by month and year:
 
 SELECT
-	YEAR(sales.order_date) AS year,
+    YEAR(sales.order_date) AS year,
     MONTH(sales.order_date) AS month,
     SUM(sales.quantity * products.unit_price_usd) / SUM(quantity) AS aov_month,
-	CASE
-		WHEN sales.storekey = 0 THEN 'online'
-		ELSE 'in_store'
-		END AS store_type
+    CASE
+        WHEN sales.storekey = 0 THEN 'online'
+        ELSE 'in_store'
+        END AS store_type
 FROM sales
 INNER JOIN products
-	ON sales.productkey = products.productkey
+    ON sales.productkey = products.productkey
 GROUP BY store_type, year, month
 ORDER BY year, month, store_type;
 
@@ -451,7 +451,7 @@ Analysis:
 - In-store has a higher AOV on average
 - Months where in-store AOV is higher than online: Jan, Feb, Mar, May, Jul, Sep, Dec
 - Months where online AOV is higher than in-store: Apr, Jun, Aug, Oct, Nov
-	- The difference in AOV is negligible (difference of <5) for the months of Feb, Apr, Aug
+    - The difference in AOV is negligible (difference of <5) for the months of Feb, Apr, Aug
 - Previously I discovered that Q1 AOV is strong, and these results show that AOV is boosted by in-store purchases
 */
 
@@ -459,27 +459,27 @@ Analysis:
 -- Dividing customers into quartiles and looking at revenue per quartile:
 
 WITH customer_revenue AS (
-	SELECT
-		sales.customerkey,
-		SUM(sales.quantity) AS num_orders,
-		SUM(products.unit_price_usd * sales.quantity) AS revenue
-	FROM sales
-	INNER JOIN products
-		ON sales.productkey = products.productkey
-	GROUP BY sales.customerkey
+    SELECT
+        sales.customerkey,
+        SUM(sales.quantity) AS num_orders,
+        SUM(products.unit_price_usd * sales.quantity) AS revenue
+    FROM sales
+    INNER JOIN products
+        ON sales.productkey = products.productkey
+    GROUP BY sales.customerkey
 ),
 quartiles AS (
-	SELECT
-		customerkey,
-		revenue,
-		NTILE(4) OVER (
-			ORDER BY revenue DESC
-			) AS quartile
-	FROM customer_revenue
+    SELECT
+        customerkey,
+        revenue,
+        NTILE(4) OVER (
+            ORDER BY revenue DESC
+            ) AS quartile
+    FROM customer_revenue
 )
 
 SELECT
-	quartile,
+    quartile,
     COUNT(*) AS num_customers,
     SUM(revenue) AS quartile_revenue
 FROM quartiles
@@ -490,7 +490,7 @@ ORDER BY quartile;
 Deep dive analysis:
 - Each quartile has the same number of customers, making for a perfectly even spread
 - Revenue pct by quartile:
-	- Q1: 62.79%
+    - Q1: 62.79%
     - Q2: 23.66%
     - Q3: 10.67%
     - Q4: 2.87%
